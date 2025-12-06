@@ -1,43 +1,35 @@
-// pages/api/speak.js - 終極版，實測 duration 正確 + 播放順利
+// pages/api/speak.js - Cartesia 高品質版（低延遲、自然情感）
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  if (req.method === "OPTIONS") return res.status(200).end();
-
   const text = decodeURIComponent(req.query.text || "");
   if (!text) return res.status(400).send("no text");
 
+  const key = process.env.CARTESIA_API_KEY;
+  if (!key) return res.status(500).send("Missing CARTESIA_API_KEY");
+
   try {
-    const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream", {
+    const response = await fetch("https://api.cartesia.ai/v1/tts", {
       method: "POST",
       headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY,
+        "Authorization": `Bearer ${key}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         text: text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.75,
-          similarity_boost: 0.85
-        }
+        voice: "c83a2b83-8eb0-4c2f-9b6a-0f1e0b8d2e1f",  // Cartesia 中文聲線 ID (從 docs 抄，換成你喜歡的)
+        speed: 1.0,
+        format: "mp3_44100_128"  // 高品質 MP3
       })
     });
 
     if (!response.ok) {
       const err = await response.text();
-      console.error("ElevenLabs:", err);
-      return res.status(response.status).send("ElevenLabs error: " + err);
+      return res.status(response.status).send("Cartesia error: " + err);
     }
 
-    // 關鍵：加這些 headers 讓瀏覽器正確讀 metadata
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Accept-Ranges", "bytes");  // 支援 seek
-    res.setHeader("Content-Length", response.headers.get("content-length") || "0");
-
-    response.body.pipe(res);  // 完整 stream
+    res.setHeader("Accept-Ranges", "bytes");
+    response.body.pipe(res);
   } catch (e) {
-    console.error("Vercel stream error:", e);
-    res.status(500).send("Stream error: " + e.message);
+    res.status(500).send("Server error: " + e.message);
   }
 }
