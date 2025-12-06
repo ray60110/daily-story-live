@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).send("Missing CARTESIA_API_KEY");
 
   try {
-    const response = await fetch("https://api.cartesia.ai/tts/bytes", {
+    const response = await fetch("https://api.cartesia.ai/tts/sse", {  // SSE 端點（官方推薦，避開 bytes 404）
       method: "POST",
       headers: {
         "Authorization": `Bearer ${key}`,
@@ -18,25 +18,21 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model_id: "sonic-3",
+        model_id: "sonic-2",  // 穩定模型
         transcript: text,
         voice: {
-          mode: "id",
-          id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"
-        },
-        language: "zh",
-        generation_config: {
-          volume: 1.0,
-          speed: 1.0,
-          emotion: "neutral"
+          mode: "name",
+          name: "alloy"  // 官方自然聲線（支援中文）
         },
         output_format: {
           container: "mp3",
           encoding: "mp3",
-          sample_rate: 44100,
-          bit_rate: 128000
+          sample_rate: 44100
         },
-        save: false
+        generation_config: {
+          volume: 1.0,
+          speed: 1.0
+        }
       })
     });
 
