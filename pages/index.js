@@ -4,16 +4,17 @@ export default function Home({ data }) {
       <h1>今日夜話</h1>
       <p><strong>生成時間：</strong>{data?.generated_at}</p>
 
-      <audio
-        controls
-        autoPlay
-        preload="metadata"
-        key={data?.generated_at}
-        style={{ width: "100%", margin: "30px 0" }}
-      >
-        <source src={data?.audio_url} type="audio/mpeg" />
-        瀏覽器不支援
-      </audio>
+<audio
+  controls
+  autoPlay
+  preload="metadata"
+  key={data?.generated_at}
+  onError={(e) => console.log("Audio error:", e.nativeEvent)}  // 看錯誤
+  style={{ width: "100%", margin: "30px 0" }}
+>
+  <source src={data?.audio_url} type="audio/mpeg" />
+  瀏覽器不支援
+</audio>
 
       <h2>故事全文</h2>
       <pre style={{ whiteSpace: "pre-wrap", background: "#f5f5f5", padding: "20px" }}>
