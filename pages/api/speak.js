@@ -1,5 +1,9 @@
-// pages/api/speak.js - Cartesia 官方端點 + 參數（2025-04-16 版本）
+// pages/api/speak.js - Cartesia 修正版（官方 2025-04-16 規格）
 export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.status(200).end();
+
   const text = decodeURIComponent(req.query.text || "");
   if (!text) return res.status(400).send("no text");
 
@@ -7,7 +11,7 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).send("Missing CARTESIA_API_KEY");
 
   try {
-    const response = await fetch("https://api.cartesia.ai/v1/tts/bytes", {
+    const response = await fetch("https://api.cartesia.ai/tts/bytes", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${key}`,
@@ -19,9 +23,9 @@ export default async function handler(req, res) {
         transcript: text,
         voice: {
           mode: "id",
-          id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"  // 官方推薦自然英文/多語言聲線（中文自然）
+          id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"  // 官方推薦自然聲線（支援中文）
         },
-        language: "zh",  // 中文語言
+        language: "zh",  // 中文語言（關鍵修復）
         output_format: {
           container: "mp3",
           encoding: "mp3",
@@ -32,7 +36,8 @@ export default async function handler(req, res) {
           volume: 1.0,
           speed: 1.0,
           emotion: "neutral"
-        }
+        },
+        save: false  // 不存檔
       })
     });
 
