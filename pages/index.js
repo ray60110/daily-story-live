@@ -10,7 +10,6 @@ export default function Home({ data }) {
         preload="metadata"
         key={data?.generated_at}
         style={{ width: "100%", margin: "30px 0" }}
-        onLoadedMetadata={(e) => console.log("Duration:", e.target.duration)}
       >
         <source src={data?.audio_url} type="audio/mpeg" />
         瀏覽器不支援
