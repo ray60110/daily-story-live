@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/generate",
-      "schedule": "5 16 * * *"  // UTC 16:05 = 台灣 00:05
+      "schedule": "5 16 * * *"
     }
   ]
 }
