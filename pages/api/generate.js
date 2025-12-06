@@ -1,9 +1,7 @@
-// pages/api/generate.js
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // Groq 生故事
     const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -20,7 +18,6 @@ export default async function handler(req, res) {
     const gdata = await groqRes.json();
     const story = gdata.choices[0].message.content.trim();
 
-    // 直接給前端 Cartesia 播放網址
     const audioUrl = `/api/speak?text=${encodeURIComponent(story)}`;
 
     res.json({
