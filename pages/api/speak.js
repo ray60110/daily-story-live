@@ -10,11 +10,13 @@ export default async function handler(req, res) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      text,
+      text: text,
       model_id: "eleven_multilingual_v2",
-      voice_settings: { stability: 0.75, similarity_boost: 0.85 }
+      voice_settings: {
+        stability: 0.75,
+        similarity_boost: 0.85
+      }
     })
-  })
   });
 
   res.setHeader("Content-Type", "audio/mpeg");
