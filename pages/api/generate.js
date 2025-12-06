@@ -1,6 +1,8 @@
-// pages/api/generate.js
 export default async function handler(req, res) {
-  // 直接用 fetch 呼叫 Groq API，完全不 import 任何套件
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(500).json({ error: "Missing GROQ_API_KEY" });
+  }
+
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -10,33 +12,25 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.9,
+        temperature: 0.95,
         max_tokens: 1200,
-        messages: [
-          {
-            role: "user",
-            content: "請用繁體中文寫一篇600~900字的原創短篇故事，風格隨機但要有完整起承轉合，直接輸出故事正文，不要加標題、引號、任何說明。"
-          }
-        ]
+        messages: [{
+          role: "user",
+          content: "用繁體中文寫一篇600~900字的原創短篇故事，風格隨機（懸疑、治癒、奇幻、怪談皆可），要有完整起承轉合，直接輸出故事正文，不要加標題、引號、任何說明。"
+        }]
       })
     });
 
     const data = await response.json();
+    const story = data.choices?.[0]?.message?.content || "生成失敗";
 
-    if (!response.ok) throw new Error(data.error?.message || "Groq API 錯誤");
-
-    const story = data.choices[0]?.message?.content || "生成失敗";
-
-    res.status(res).status(200).json({
+    res.status(200).json({
       success: true,
       story: story.trim(),
-      generated_at: new Date().toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })
+      time: new Date().toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 }
