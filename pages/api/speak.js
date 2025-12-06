@@ -1,4 +1,4 @@
-// pages/api/speak.js - Cartesia 高品質版（低延遲、自然情感）
+// pages/api/speak.js
 export default async function handler(req, res) {
   const text = decodeURIComponent(req.query.text || "");
   if (!text) return res.status(400).send("no text");
@@ -7,29 +7,38 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).send("Missing CARTESIA_API_KEY");
 
   try {
-    const response = await fetch("https://api.cartesia.ai/v1/tts", {
+    const response = await fetch("https://api.cartesia.ai/v1/tts/bytes", {
       method: "POST",
       headers: {
+        "Cartesia-Version": "2024-06-10",
         "Authorization": `Bearer ${key}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        text: text,
-        voice: "c83a2b83-8eb0-4c2f-9b6a-0f1e0b8d2e1f",  // Cartesia 中文聲線 ID (從 docs 抄，換成你喜歡的)
-        speed: 1.0,
-        format: "mp3_44100_128"  // 高品質 MP3
+        model_id: "sonic-multilingual",
+        transcript: text,
+        voice: {
+          mode: "id",
+          id: "b7c7e3e4-6f8f-4e7b-9c3d-2f1a0b9e8d7c"  // 官方推薦中文聲線（最自然）
+        },
+        output_format: {
+          container: "mp3",
+          encoding: "mp3",
+          bit_rate: 128000
+        }
       })
     });
 
     if (!response.ok) {
       const err = await response.text();
+      console.error("Cartesia error:", err);
       return res.status(response.status).send("Cartesia error: " + err);
     }
 
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Accept-Ranges", "bytes");
     response.body.pipe(res);
   } catch (e) {
-    res.status(500).send("Server error: " + e.message);
+    console.error("Speak error:", e);
+    res.status(500).send(e.message);
   }
 }
