@@ -1,4 +1,3 @@
-// pages/index.js
 export default function Home({ data }) {
   return (
     <div style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
@@ -11,6 +10,7 @@ export default function Home({ data }) {
         preload="metadata"
         key={data?.generated_at}
         style={{ width: "100%", margin: "30px 0" }}
+        onLoadedMetadata={(e) => console.log("Duration:", e.target.duration)}
       >
         <source src={data?.audio_url} type="audio/mpeg" />
         瀏覽器不支援
@@ -25,7 +25,7 @@ export default function Home({ data }) {
 }
 
 export async function getServerSideProps() {
-  const res = await fetch(`https://${process.env.VERCEL_URL}/api/generate`);
+  const res = await fetch(`${process.env.VERCEL_URL}/api/generate`);
   const data = await res.json();
   return { props: { data } };
 }
