@@ -1,40 +1,49 @@
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
-  if (!process.env.GROQ_API_KEY) {
-    return res.status(500).json({ error: "Missing GROQ_API_KEY" });
+  const { GROQ_API_KEY, ELEVENLABS_API_KEY } = process.env;
+  if (!GROQ_API_KEY || !ELEVENLABS_API_KEY) {
+    return res.status(500).json({ error: "Missing API keys" });
   }
 
   try {
-    // 1. 先用 Groq 生文字
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // Step 1: Groq 生成故事
+    const storyRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+      headers: { "Authorization": `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         temperature: 0.95,
-        max_tokens: 1200,
-        messages: [{
-          role: "user",
-          content: "用繁體中文寫一篇600~900字的原創短篇故事，風格隨機，要有完整劇情，直接輸出純文字，不要加標題。"
-        }]
+        max_tokens: 1300,
+        messages: [{ role: "user", content: "用繁體中文寫一篇600~900字的原創短篇故事，風格隨機，要有完整劇情，直接輸出純文字，不要加標題。" }]
+      })
+    });
+    const storyData = await storyRes.json();
+    const story = storyData.choices[0].message.content.trim();
+
+    // Step 2: ElevenLabs 轉語音（Rachel）
+    const ttsRes = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream", {
+      method: "POST",
+      headers: {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        text: story,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: { stability: 0.7, similarity_boost: 0.85 }
       })
     });
 
-    const groqData = await groqRes.json();
-    const story = groqData.choices[0].message.content.trim();
+    const audioBuffer = Buffer.from(await ttsRes.arrayBuffer());
+    const audioBase64 = audioBuffer.toString("base64");
+    const audioUrl = `data:audio/mpeg;base64,${audioBase64}`;
 
-    // 2. 用台灣微軟免費 TTS 轉語音（完全不用 key，音質超好）
-    const ttsUrl = `https://dict.radiotaiwan.tw/taiwan/sound.php?word=${encodeURIComponent(story.substring(0, 500))}&voice=zh-TW-HsiaoChenNeural`;
-
-    res.status(200).json({
+    res.json({
       success: true,
-      story: story,
-      audio_url: ttsUrl,     // 直接給前端播放
-      tip: "點擊播放鍵即可聽完整故事（前500字免費版）",
-      generated_at: new Date().toLocaleString("zh-TW")
+      story,
+      audio_url: audioUrl,
+      generated_at: new Date().toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })
     });
 
   } catch (e) {
