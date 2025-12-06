@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         model: "llama-3.3-70b-versatile",
         temperature: 0.95,
         max_tokens: 1300,
-        messages: [{ role: "user", content: "用繁體中文寫一篇600~900字原創短篇故事，風格隨機，要完整劇情，直接輸出純文字，不要標題。" }]
+        messages: [{ role: "user", content: "用繁體中文寫一篇200字原創短篇故事，風格隨機，要完整劇情，直接輸出純文字，不要標題。" }]
       })
     });
     const gdata = await groqRes.json();
