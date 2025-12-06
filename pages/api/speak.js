@@ -1,4 +1,3 @@
-// pages/api/speak.js - Cartesia 修正版（官方 2025-04-16 規格）
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -19,25 +18,25 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model_id: "sonic-3",  // 最新多語言模型
+        model_id: "sonic-3",
         transcript: text,
         voice: {
           mode: "id",
-          id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"  // 官方推薦自然聲線（支援中文）
+          id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"
         },
-        language: "zh",  // 中文語言（關鍵修復）
+        language: "zh",
+        generation_config: {
+          volume: 1.0,
+          speed: 1.0,
+          emotion: "neutral"
+        },
         output_format: {
           container: "mp3",
           encoding: "mp3",
           sample_rate: 44100,
           bit_rate: 128000
         },
-        generation_config: {
-          volume: 1.0,
-          speed: 1.0,
-          emotion: "neutral"
-        },
-        save: false  // 不存檔
+        save: false
       })
     });
 
