@@ -23,7 +23,6 @@ export default function Home({ data }) {
   );
 }
 
-// 這段很重要：每次打開頁面都去抓最新故事
 export async function getServerSideProps() {
   const res = await fetch(`https://${process.env.VERCEL_URL}/api/generate`);
   const data = await res.json();
