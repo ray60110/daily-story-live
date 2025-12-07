@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const text = decodeURIComponent(req.query.text || "");
@@ -10,7 +9,7 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).send("Missing CARTESIA_API_KEY");
 
   try {
-    const response = await fetch("https://api.cartesia.ai/tts/sse", {  // SSE 端點（官方推薦，避開 bytes 404）
+    const r = await fetch("https://api.cartesia.ai/tts/bytes", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${key}`,
@@ -18,35 +17,22 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model_id: "sonic-2",  // 穩定模型
+        model_id: "sonic-3",
         transcript: text,
-        voice: {
-          mode: "name",
-          name: "alloy"  // 官方自然聲線（支援中文）
-        },
-        output_format: {
-          container: "mp3",
-          encoding: "mp3",
-          sample_rate: 44100
-        },
-        generation_config: {
-          volume: 1.0,
-          speed: 1.0
-        }
+        voice: { mode: "id", id: "6ccbfb76-1fc6-48f7-b71d-91ac6298247b" },
+        language: "zh",
+        output_format: { container: "mp3", encoding: "mp3", sample_rate: 44100 }
       })
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Cartesia error:", err);
-      return res.status(response.status).send("Cartesia error: " + err);
+    if (!r.ok) {
+      const e = await r.text();
+      return res.status(r.status).send("Cartesia error: " + e);
     }
 
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Accept-Ranges", "bytes");
-    response.body.pipe(res);
+    r.body.pipe(res);
   } catch (e) {
-    console.error("Speak error:", e);
     res.status(500).send("Server error: " + e.message);
   }
 }
